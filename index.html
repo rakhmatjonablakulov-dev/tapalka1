@@ -3,93 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тапалка - Заработок</title>
+    <title>Тапалка</title>
     <!-- Официальный скрипт Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            background: linear-gradient(135deg, #1f1c2c, #928dab);
-            color: white;
+            background-color: #0f172a;
+            color: #ffffff;
             font-family: Arial, sans-serif;
             text-align: center;
+            padding-top: 40px;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: height;
-            height: 90vh;
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        #score {
-            font-size: 56px;
-            font-weight: bold;
-            margin: 20px 0;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .coin-container {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .coin {
-            width: 220px;
-            height: 220px;
-            background: radial-gradient(circle, #f39c12, #d35400);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 80px;
-            cursor: pointer;
-            box-shadow: 0 15px 35px rgba(243, 156, 18, 0.5);
             user-select: none;
+            -webkit-user-select: none;
+        }
+        h1 { 
+            font-size: 24px; 
+            margin-bottom: 10px;
+        }
+        #counter { 
+            font-size: 52px; 
+            font-weight: bold; 
+            margin: 20px 0; 
+            color: #fbbf24; 
+        }
+        .tap-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
             transition: transform 0.05s ease;
+            outline: none;
+            margin-top: 20px;
         }
-        .coin:active {
-            transform: scale(0.92);
+        .tap-btn:active { 
+            transform: scale(0.92); 
         }
-        .info {
-            font-size: 14px;
-            opacity: 0.8;
+        .save-btn {
+            margin-top: 50px;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .save-btn:hover { 
+            background-color: #059669; 
         }
     </style>
 </head>
 <body>
 
-    <h1>🪙 Крипто Тапалка</h1>
-    <div class="info">Тапай по монете и зарабатывай деньги!</div>
+    <h1>🎮 Кликер Тапалка</h1>
+    <p>Кликайте по кнопке, чтобы заработать монеты!</p>
     
-    <div id="score">0</div>
-
-    <div class="coin-container">
-        <div class="coin" id="tapButton">🪙</div>
-    </div>
+    <div id="counter">0</div>
+    
+    <!-- Большая кнопка тапа -->
+    <button class="tap-btn" id="tapButton">ТАП!</button>
+    
+    <br>
+    <!-- Кнопка сохранения монет в бота -->
+    <button class="save-btn" id="saveButton">💾 Сохранить и зачислить в бот</button>
 
     <script>
-        let score = 0;
-        const scoreElement = document.getElementById('score');
-        const tapButton = document.getElementById('tapButton');
-
         // Инициализация Telegram Web App
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
+        tg.ready();
+        tg.expand(); // Разворачиваем игру на весь экран
 
-        // Получаем ID пользователя Telegram
-        const user = tg.initDataUnsafe?.user;
-        const userId = user ? user.id : 'unknown';
+        let score = 0;
+        const counterElement = document.getElementById('counter');
+        const tapButton = document.getElementById('tapButton');
+        const saveButton = document.getElementById('saveButton');
 
+        // Обработка кликов (тапов)
         tapButton.addEventListener('click', () => {
-            score += 1;
-            scoreElement.innerText = score;
-
-            // Легкая вибрация при клике на телефоне
+            score += 1; // За каждый клик прибавляется 1 монета
+            counterElement.textContent = score;
+            
+            // Легкая вибрация телефона при клике (если поддерживается устройством)
             if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        });
+
+        // Отправка данных в бот
+        saveButton.addEventListener('click', () => {
+            if (score > 0) {
+                // Упаковываем монеты в JSON-формат
+                const dataToSend = JSON.stringify({ coins: score });
+                
+                // Передаем данные боту и автоматически закрываем веб-приложение
+                tg.sendData(dataToSend);
+            } else {
+                alert('Вы еще ничего не накликали!');
             }
         });
     </script>
