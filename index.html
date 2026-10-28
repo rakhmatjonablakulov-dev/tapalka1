@@ -116,11 +116,14 @@
         const saveButton = document.getElementById('saveButton');
         const adButton = document.getElementById('adButton');
 
-        // Безопасная инициализация Adsgram SDK с вашим Block ID (56467)
+        // Инициализация Adsgram SDK с Block ID (56467) и режимом отладки
         let adController = null;
         try {
             if (window.Adsgram) {
-                adController = window.Adsgram.init({ blockId: "56467" });
+                adController = window.Adsgram.init({ 
+                    blockId: "56467", 
+                    mode: "development" // Убирает ошибку параметров в тестовом режиме
+                });
             }
         } catch (e) {
             console.log("Adsgram init error:", e);
@@ -136,10 +139,10 @@
             }
         });
 
-        // Функция показа rewarded-рекламы Adsgram без ложных ошибок
+        // Функция показа rewarded-рекламы Adsgram
         adButton.addEventListener('click', () => {
             if (!adController) {
-                alert('Реклама загружается или недоступна. Попробуйте открыть игру через бота.');
+                alert('Реклама загружается или недоступна. Попробуйте обновить страницу.');
                 return;
             }
 
@@ -155,7 +158,6 @@
                 })
                 .catch((result) => {
                     console.log("Ad skipped or failed:", result);
-                    // Ошибки больше не вызывают раздражающих ложных алертов
                 });
         });
 
