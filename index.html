@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тапалка</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Подключаем официальный SDK Adsgram -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <style>
         body {
             background-color: #0f172a;
@@ -87,7 +89,16 @@
         const saveButton = document.getElementById('saveButton');
         const adButton = document.getElementById('adButton');
 
-        // Обработка кликов (тапов)
+        // Инициализация Adsgram SDK с вашим Block ID (56467)
+        let adController = null;
+        try {
+            if (window.Adsgram) {
+                adController = window.Adsgram.init({ blockId: "56467" });
+            }
+        } catch (e) {
+            console.log("Adsgram init error");
+        }
+
         tapButton.addEventListener('click', () => {
             score += 1;
             counterElement.textContent = score;
@@ -96,17 +107,31 @@
             }
         });
 
-        // Надежная выдача бонуса за рекламу без системных ошибок
+        // Умная кнопка рекламы: в Telegram показывает видео, в тестах дает бонус
         adButton.addEventListener('click', () => {
-            score += 100;
-            counterElement.textContent = score;
-            if (tg && tg.HapticFeedback) {
-                try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+            // Если Adsgram реально работает — показываем видео (вам идут деньги)
+            if (adController) {
+                adController.show()
+                    .then((result) => {
+                        score += 100;
+                        counterElement.textContent = score;
+                        if (tg && tg.HapticFeedback) {
+                            try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+                        }
+                        alert('Реклама успешно просмотрена! Начислено 100 монет.');
+                    })
+                    .catch((result) => {
+                        console.log("Ad closed or error", result);
+                        alert('Реклама была закрыта досрочно, монеты не зачислены.');
+                    });
+            } else {
+                // Если зашли из обычного браузера (тестовый режим) — начисляем без ошибок
+                score += 100;
+                counterElement.textContent = score;
+                alert('Тестовый режим: начислено 100 монет!');
             }
-            alert('Реклама успешно просмотрена! Начислено 100 монет.');
         });
 
-        // Отправка данных в бот
         saveButton.addEventListener('click', () => {
             if (score > 0) {
                 const dataToSend = JSON.stringify({ coins: score });
