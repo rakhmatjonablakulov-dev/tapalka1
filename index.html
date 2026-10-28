@@ -103,8 +103,12 @@
     <script>
         // Инициализация Telegram Web App
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand(); // Разворачиваем игру на весь экран
+        try {
+            tg.ready();
+            tg.expand();
+        } catch (e) {
+            console.log("Telegram WebApp not ready:", e);
+        }
 
         let score = 0;
         const counterElement = document.getElementById('counter');
@@ -112,50 +116,58 @@
         const saveButton = document.getElementById('saveButton');
         const adButton = document.getElementById('adButton');
 
-        // Инициализация Adsgram SDK с вашим Block ID
-        const adController = window.Adsgram.init({ blockId: "56467" });
+        // Безопасная инициализация Adsgram SDK с вашим Block ID (56467)
+        let adController = null;
+        try {
+            if (window.Adsgram) {
+                adController = window.Adsgram.init({ blockId: "56467" });
+            }
+        } catch (e) {
+            console.log("Adsgram init error:", e);
+        }
 
         // Обработка кликов (тапов)
         tapButton.addEventListener('click', () => {
-            score += 1; // За каждый клик прибавляется 1 монета
+            score += 1;
             counterElement.textContent = score;
             
-            // Легкая вибрация телефона при клике
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
+            if (tg && tg.HapticFeedback) {
+                try { tg.HapticFeedback.impactOccurred('light'); } catch (e) {}
             }
         });
 
-        // Функция показа rewarded-рекламы Adsgram
+        // Функция показа rewarded-рекламы Adsgram без ложных ошибок
         adButton.addEventListener('click', () => {
+            if (!adController) {
+                alert('Реклама загружается или недоступна. Попробуйте открыть игру через бота.');
+                return;
+            }
+
             adController.show()
                 .then((result) => {
-                    // Пользователь успешно досмотрел рекламу до конца
-                    score += 100; // Начисляем бонус
+                    score += 100;
                     counterElement.textContent = score;
                     
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
+                    if (tg && tg.HapticFeedback) {
+                        try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
                     }
-                    alert('Реклама просмотрена! Вам начислено 100 монет.');
+                    alert('Реклама успешно просмотрена! Вам начислено 100 монет.');
                 })
                 .catch((result) => {
-                    // Пользователь закрыл рекламу досрочно или произошла ошибка
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('error');
-                    }
-                    alert('Реклама была закрыта до завершения, награда не выдана.');
+                    console.log("Ad skipped or failed:", result);
+                    // Ошибки больше не вызывают раздражающих ложных алертов
                 });
         });
 
         // Отправка данных в бот
         saveButton.addEventListener('click', () => {
             if (score > 0) {
-                // Упаковываем монеты в JSON-формат
                 const dataToSend = JSON.stringify({ coins: score });
-                
-                // Передаем данные боту и автоматически закрываем веб-приложение
-                tg.sendData(dataToSend);
+                if (tg && tg.sendData) {
+                    tg.sendData(dataToSend);
+                } else {
+                    alert('Данные подготовлены: ' + dataToSend + '\n(Откройте приложение через Telegram-бота для автоматической отправки)');
+                }
             } else {
                 alert('Вы еще ничего не накликали!');
             }
