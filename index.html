@@ -14,6 +14,8 @@
             text-align: center;
             padding-top: 30px;
             margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
         }
         h1 { font-size: 24px; color: #ffffff; margin-bottom: 5px; }
         #counter { font-size: 48px; font-weight: bold; margin: 15px 0; color: #fbbf24; }
@@ -45,6 +47,7 @@
             margin-left: auto;
             margin-right: auto;
         }
+        .ad-btn:hover { background-color: #2563eb; }
         .save-btn {
             margin-top: 15px;
             background-color: #10b981;
@@ -56,6 +59,7 @@
             border-radius: 10px;
             cursor: pointer;
         }
+        .save-btn:hover { background-color: #059669; }
     </style>
 </head>
 <body>
@@ -67,6 +71,7 @@
     
     <button class="tap-btn" id="tapButton">ТАП!</button>
     <br>
+    <!-- Кнопка рекламы возвращена на экран -->
     <button class="ad-btn" id="adButton">📺 Смотреть рекламу (+100 монет)</button>
     <br>
     <button class="save-btn" id="saveButton">💾 Сохранить и зачислить в бот</button>
@@ -119,7 +124,6 @@
                     alert('Реклама успешно просмотрена! Начислено 100 монет.');
                 })
                 .catch((result) => {
-                    // Страховка на случай закрытия рекламы раньше времени
                     score += 100;
                     counterElement.textContent = score;
                     alert('Начислено 100 монет!');
