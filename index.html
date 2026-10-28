@@ -5,33 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тапалка</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <style>
         body {
             background-color: #0f172a;
             color: #ffffff;
             font-family: Arial, sans-serif;
             text-align: center;
-            padding-top: 40px;
+            padding-top: 30px;
             margin: 0;
         }
-        h1 { font-size: 24px; color: #ffffff; }
-        #counter { font-size: 52px; font-weight: bold; margin: 20px 0; color: #fbbf24; }
+        h1 { font-size: 24px; color: #ffffff; margin-bottom: 5px; }
+        #counter { font-size: 48px; font-weight: bold; margin: 15px 0; color: #fbbf24; }
         .tap-btn {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             border: none;
             border-radius: 50%;
-            width: 180px;
-            height: 180px;
-            font-size: 30px;
+            width: 170px;
+            height: 170px;
+            font-size: 28px;
             font-weight: bold;
             color: white;
             cursor: pointer;
             box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
-            margin-top: 20px;
+            margin-top: 10px;
         }
         .tap-btn:active { transform: scale(0.92); }
+        .ad-btn {
+            margin-top: 20px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
         .save-btn {
-            margin-top: 30px;
+            margin-top: 15px;
             background-color: #10b981;
             color: white;
             border: none;
@@ -46,36 +61,79 @@
 <body>
 
     <h1>🎮 Кликер Тапалка</h1>
-    <p>Кликайте по кнопке, чтобы заработать монеты!</p>
+    <p>Кликайте по кнопке или смотрите рекламу за монеты!</p>
     
     <div id="counter">0</div>
     
     <button class="tap-btn" id="tapButton">ТАП!</button>
     <br>
+    <button class="ad-btn" id="adButton">📺 Смотреть рекламу (+100 монет)</button>
+    <br>
     <button class="save-btn" id="saveButton">💾 Сохранить и зачислить в бот</button>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        try {
+            tg.ready();
+            tg.expand();
+        } catch (e) {}
 
         let score = 0;
         const counterElement = document.getElementById('counter');
         const tapButton = document.getElementById('tapButton');
         const saveButton = document.getElementById('saveButton');
+        const adButton = document.getElementById('adButton');
+
+        // Инициализация Adsgram SDK с вашим Block ID (56467)
+        let adController = null;
+        try {
+            if (window.Adsgram) {
+                adController = window.Adsgram.init({ blockId: "56467" });
+            }
+        } catch (e) {}
 
         tapButton.addEventListener('click', () => {
             score += 1;
             counterElement.textContent = score;
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
+            if (tg && tg.HapticFeedback) {
+                try { tg.HapticFeedback.impactOccurred('light'); } catch (e) {}
             }
+        });
+
+        // Обработка показа рекламы
+        adButton.addEventListener('click', () => {
+            if (!adController) {
+                score += 100;
+                counterElement.textContent = score;
+                alert('Бонус зачислен: +100 монет!');
+                return;
+            }
+
+            adController.show()
+                .then((result) => {
+                    score += 100;
+                    counterElement.textContent = score;
+                    if (tg && tg.HapticFeedback) {
+                        try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+                    }
+                    alert('Реклама успешно просмотрена! Начислено 100 монет.');
+                })
+                .catch((result) => {
+                    // Страховка на случай закрытия рекламы раньше времени
+                    score += 100;
+                    counterElement.textContent = score;
+                    alert('Начислено 100 монет!');
+                });
         });
 
         saveButton.addEventListener('click', () => {
             if (score > 0) {
                 const dataToSend = JSON.stringify({ coins: score });
-                tg.sendData(dataToSend);
+                if (tg && tg.sendData) {
+                    tg.sendData(dataToSend);
+                } else {
+                    alert('Данные подготовлены: ' + dataToSend);
+                }
             } else {
                 alert('Вы еще ничего не накликали!');
             }
