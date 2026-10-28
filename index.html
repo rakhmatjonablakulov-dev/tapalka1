@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тапалка</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Официальный SDK Adsgram -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
     <style>
         body {
             background-color: #0f172a;
@@ -87,6 +89,12 @@
         const saveButton = document.getElementById('saveButton');
         const adButton = document.getElementById('adButton');
 
+        // Инициализация Adsgram с вашим Block ID (56467)
+        let adController = null;
+        if (window.Adsgram) {
+            adController = window.Adsgram.init({ blockId: "56467" });
+        }
+
         tapButton.addEventListener('click', () => {
             score += 1;
             counterElement.textContent = score;
@@ -95,14 +103,29 @@
             }
         });
 
-        // Надежное начисление бонуса без ошибок SDK
+        // Запуск реальной рекламы Adsgram
         adButton.addEventListener('click', () => {
-            score += 100;
-            counterElement.textContent = score;
-            if (tg && tg.HapticFeedback) {
-                try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+            if (!adController) {
+                alert('Рекламный модуль еще загружается. Попробуйте через пару секунд.');
+                return;
             }
-            alert('Реклама успешно просмотрена! Начислено 100 монет.');
+
+            // Вызываем показ рекламы
+            adController.show()
+                .then((result) => {
+                    // СЮДА КОД ПОПАДАЕТ ТОЛЬКО ЕСЛИ РЕКЛАМА ДОСМОТРЕНА ДО КОНЦА
+                    score += 100;
+                    counterElement.textContent = score;
+                    if (tg && tg.HapticFeedback) {
+                        try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+                    }
+                    alert('Спасибо за просмотр! Начислено 100 монет.');
+                })
+                .catch((err) => {
+                    // Если игрок закрыл рекламу раньше времени или произошла ошибка
+                    console.log("Ad error or skipped", err);
+                    alert('Реклама не была досмотрена до конца. Монеты не начислены.');
+                });
         });
 
         saveButton.addEventListener('click', () => {
