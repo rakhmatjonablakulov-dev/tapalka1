@@ -95,7 +95,7 @@
             adController = window.Adsgram.init({ blockId: "56467" });
         }
 
-        // Обычные тапы по кнопке
+        // Обычные клики по кнопке «ТАП!»
         tapButton.addEventListener('click', () => {
             score += 1;
             counterElement.textContent = score;
@@ -104,31 +104,34 @@
             }
         });
 
-        // Запуск реальной рекламы Adsgram с честным начислением
+        // Запуск рекламы Adsgram с гарантированным начислением для тестов
         adButton.addEventListener('click', () => {
             if (!adController) {
-                alert('Рекламный модуль еще загружается. Попробуйте через пару секунд.');
+                score += 100;
+                counterElement.textContent = score;
+                alert('Модуль грузится: начислено 100 монет!');
                 return;
             }
 
             adController.show()
                 .then((result) => {
-                    // РЕАЛЬНО ДОБАВЛЯЕМ 100 МОНЕТ К СЧЁТУ
                     score += 100;
                     counterElement.textContent = score;
-
                     if (tg && tg.HapticFeedback) {
                         try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
                     }
-                    alert('Спасибо за просмотр! Начислено 100 монет.');
+                    alert('Реклама просмотрена! +100 монет. Всего: ' + score);
                 })
                 .catch((err) => {
                     console.log("Ad error or skipped", err);
-                    alert('Реклама не была досмотрена до конца. Монеты не начислены.');
+                    // Принудительно начисляем монеты для проверки отправки в бот
+                    score += 100;
+                    counterElement.textContent = score;
+                    alert('Тест: зачислено 100 монет. Всего: ' + score);
                 });
         });
 
-        // Сохранение и передача очков в бот
+        // Сохранение и отправка данных в бот
         saveButton.addEventListener('click', () => {
             if (score > 0) {
                 const dataToSend = JSON.stringify({ coins: score });
