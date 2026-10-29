@@ -90,16 +90,6 @@
         const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
-        // Инициализация Adsgram с новым Block ID: 56761
-        let adController = null;
-        if (typeof window.Adsgram !== "undefined") {
-            try {
-                adController = window.Adsgram.init({ blockId: "56761" });
-            } catch (e) {
-                console.log("Adsgram init error:", e);
-            }
-        }
-
         // Тап по алмазу
         tapButton.addEventListener("click", () => {
             score += 1;
@@ -109,36 +99,35 @@
             }
         });
 
-        // Просмотр рекламы
+        // Просмотр рекламы с автоматическим резервным начислением
         watchAdBtn.addEventListener("click", async () => {
-            if (!adController && typeof window.Adsgram !== "undefined") {
+            watchAdBtn.disabled = true;
+            watchAdBtn.textContent = "Проверка рекламы...";
+
+            let adShown = false;
+
+            if (typeof window.Adsgram !== "undefined") {
                 try {
-                    adController = window.Adsgram.init({ blockId: "56761" });
-                } catch (e) {}
+                    const adController = window.Adsgram.init({ blockId: "56761" });
+                    await adController.show();
+                    adShown = true;
+                } catch (err) {
+                    console.log("Ad network error or blocked:", err);
+                }
             }
 
-            if (!adController) {
-                alert("⚠️ Рекламный модуль не загружен. Проверьте интернет-соединение или VPN.");
-                return;
+            // Начисляем монеты в любом случае, чтобы игра не зависала у пользователей без VPN
+            score += 200;
+            scoreElement.textContent = score;
+
+            if (adShown) {
+                alert("🎉 Реклама успешно просмотрена! Получено +200 монет.");
+            } else {
+                alert("✨ Начислено +200 монет! (Рекламный блок в вашей сети работал в резервном режиме).");
             }
 
-            try {
-                watchAdBtn.disabled = true;
-                watchAdBtn.textContent = "Загрузка рекламы...";
-                
-                // Показ официальной рекламы
-                await adController.show();
-                
-                score += 200;
-                scoreElement.textContent = score;
-                alert("🎉 Вы успешно просмотрели рекламу и получили +200 монет!");
-            } catch (err) {
-                console.log("Ad show error:", err);
-                alert("⚠️ Реклама была закрыта досрочно или заблокирована сетью.");
-            } finally {
-                watchAdBtn.disabled = false;
-                watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
-            }
+            watchAdBtn.disabled = false;
+            watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
         });
 
         // Отправка данных в бот
@@ -150,7 +139,7 @@
 
             try {
                 const dataToSend = JSON.stringify({ coins: score });
-                if (tg.sendData) {
+                if (tg && tg.sendData) {
                     tg.sendData(dataToSend);
                     score = 0;
                     scoreElement.textContent = score;
