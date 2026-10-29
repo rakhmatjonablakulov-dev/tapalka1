@@ -89,7 +89,6 @@
         const saveButton = document.getElementById('saveButton');
         const adButton = document.getElementById('adButton');
 
-        // Инициализация Adsgram с вашим Block ID (56467)
         let adController = null;
         if (window.Adsgram) {
             adController = window.Adsgram.init({ blockId: "56467" });
@@ -103,7 +102,6 @@
             }
         });
 
-        // Запуск рекламы Adsgram
         adButton.addEventListener('click', () => {
             if (!adController) {
                 alert('Рекламный модуль еще загружается. Попробуйте через пару секунд.');
@@ -112,7 +110,6 @@
 
             adController.show()
                 .then((result) => {
-                    // Начисление происходит строго после успешного просмотра
                     score += 100;
                     counterElement.textContent = score;
                     if (tg && tg.HapticFeedback) {
@@ -130,6 +127,8 @@
             if (score > 0) {
                 const dataToSend = JSON.stringify({ coins: score });
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
+                    // Показываем подтверждение перед закрытием, чтобы данные точно ушли
+                    alert('Сохраняем ' + score + ' монет в бот!');
                     window.Telegram.WebApp.sendData(dataToSend);
                 } else {
                     alert('Ошибка: Telegram WebApp недоступен.');
