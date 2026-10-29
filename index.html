@@ -95,7 +95,17 @@
         const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
-        // Тапалка
+        // Инициализация контроллера Adsgram один раз при загрузке страницы
+        let adController = null;
+        if (typeof window.Adsgram !== "undefined") {
+            try {
+                adController = window.Adsgram.init({ blockId: "56467" });
+            } catch (e) {
+                console.log("Adsgram init error:", e);
+            }
+        }
+
+        // Клик по алмазу (+1 монета)
         tapButton.addEventListener("click", () => {
             score += 1;
             scoreElement.textContent = score;
@@ -104,56 +114,16 @@
             }
         });
 
-        // Обработка кнопки рекламы с защитой от блокировки сети
+        // Просмотр рекламы Adsgram
         watchAdBtn.addEventListener("click", async () => {
-            watchAdBtn.disabled = true;
-            watchAdBtn.textContent = "Проверка...";
-
-            try {
+            if (!adController) {
                 if (typeof window.Adsgram !== "undefined") {
-                    const adController = window.Adsgram.init({ blockId: "56467" });
-                    await adController.show();
-                    score += 200;
-                    scoreElement.textContent = score;
-                    alert("🎉 Вы успешно просмотрели рекламу (+200 монет)!");
-                } else {
-                    throw new Error("SDK blocked");
+                    try {
+                        adController = window.Adsgram.init({ blockId: "56467" });
+                    } catch (e) {}
                 }
-            } catch (err) {
-                console.log("Ad fallback:", err);
-                // Если скрипт заблокирован сетью, монеты корректно зачисляются на экран
-                score += 200;
-                scoreElement.textContent = score;
-                alert("✨ Успешно! Начислено +200 монет.");
-            } finally {
-                watchAdBtn.disabled = false;
-                watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
-            }
-        });
-
-        // Сохранение в бот
-        saveButton.addEventListener("click", () => {
-            if (score <= 0) {
-                alert("Сначала заработайте монеты!");
-                return;
             }
 
-            try {
-                const dataToSend = JSON.stringify({ coins: score });
-                if (tg.sendData) {
-                    tg.sendData(dataToSend);
-                    score = 0;
-                    scoreElement.textContent = score;
-                    alert("✅ Монеты успешно отправлены в бот!");
-                    setTimeout(() => { tg.close(); }, 400);
-                } else {
-                    alert("❌ Откройте приложение через кнопку в боте.");
-                }
-            } catch (e) {
-                console.log("Send data error:", e);
-                alert("Ошибка отправки данных.");
-            }
-        });
-    </script>
-</body>
-</html>
+            if (!adController) {
+                alert("⚠️
+        
