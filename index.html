@@ -79,7 +79,7 @@
     <!-- Кнопка тапа -->
     <button class="coin-btn" id="tapButton">💎</button>
 
-    <!-- Кнопка реальной рекламы Adsgram -->
+    <!-- Кнопка рекламы -->
     <button class="action-btn ad-btn" id="watchAdBtn">📺 Смотреть рекламу (+200)</button>
 
     <!-- Кнопка сохранения в бот -->
@@ -95,12 +95,6 @@
         const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
-        // Инициализация контроллера Adsgram для вашего блока 56467
-        let adController = null;
-        if (window.Adsgram) {
-            adController = window.Adsgram.init({ blockId: "56467" });
-        }
-
         // Клик по алмазу (+1 монета)
         tapButton.addEventListener("click", () => {
             score += 1;
@@ -110,27 +104,26 @@
             }
         });
 
-        // Просмотр реальной рекламы Adsgram
+        // Просмотр рекламы с созданием контроллера при клике
         watchAdBtn.addEventListener("click", async () => {
-            if (!adController) {
-                alert("Рекламный модуль загружается, попробуйте через секунду.");
-                return;
-            }
-
             try {
-                watchAdBtn.disabled = true;
-                watchAdBtn.textContent = "Загрузка рекламы...";
+                if (typeof window.Adsgram === "undefined") {
+                    alert("Рекламный скрипт не загрузился. Проверьте интернет.");
+                    return;
+                }
 
-                // Запуск показа видеорекламы
-                const result = await adController.show();
-                
-                // Если пользователь досмотрел рекламу до конца
+                watchAdBtn.disabled = true;
+                watchAdBtn.textContent = "Загрузка...";
+
+                const adController = window.Adsgram.init({ blockId: "56467" });
+                await adController.show();
+
                 score += 200;
                 scoreElement.textContent = score;
-                alert("🎉 Вы успешно просмотрели рекламу и получили +200 монет!");
+                alert("🎉 Вы получили 200 монет за просмотр рекламы!");
             } catch (err) {
                 console.log("Ad error:", err);
-                alert("⚠️ Реклама закрыта досрочно или временно отсутствует.");
+                alert("⚠️ Реклама закрыта досрочно или временно недоступна.");
             } finally {
                 watchAdBtn.disabled = false;
                 watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
@@ -150,7 +143,7 @@
                     tg.sendData(dataToSend);
                     score = 0;
                     scoreElement.textContent = score;
-                    alert("✅ Монеты успешно отправлены в бот!");
+                    alert("✅ Монеты отправлены в бот!");
                     setTimeout(() => { tg.close(); }, 400);
                 } else {
                     alert("❌ Откройте приложение через кнопку в боте.");
