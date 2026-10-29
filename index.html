@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Тапалка с Adsgram</title>
-    <!-- Подключаем официальный Telegram Web App SDK -->
+    <title>Telegram Тапалка</title>
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Подключаем официальный Adsgram SDK -->
+    <!-- Adsgram SDK -->
     <script src="https://sad.adsgram.org/js/sad.js"></script>
     <style>
         body {
@@ -86,7 +86,6 @@
     <button class="action-btn save-btn" id="saveButton">💾 Сохранить в бот</button>
 
     <script>
-        // Инициализация Telegram WebApp
         let tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -96,70 +95,45 @@
         const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
-        // Безопасная инициализация Adsgram с защитой от ошибок
-        let adController = null;
-        try {
-            if (window.Adsgram) {
-                adController = window.Adsgram.init({ blockId: "56467" });
-            }
-        } catch (e) {
-            console.log("Adsgram init error:", e);
-        }
-
-        // Тапалка (клик по алмазу)
+        // Клик по алмазу (тапалка)
         tapButton.addEventListener("click", () => {
             score += 1;
             scoreElement.textContent = score;
-            
-            // Легкая вибрация телефона
             if (tg && tg.HapticFeedback) {
-                try {
-                    tg.HapticFeedback.impactOccurred("light");
-                } catch (e) {}
+                try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {}
             }
         });
 
-        // Просмотр рекламы Adsgram (+200 монет)
+        // Кнопка рекламы с гарантированным вызовом
         watchAdBtn.addEventListener("click", async () => {
-            if (!adController) {
-                alert("Реклама еще загружается или недоступна. Попробуйте позже.");
-                return;
-            }
-
             try {
+                if (!window.Adsgram) {
+                    alert("Adsgram SDK не загрузился. Проверьте интернет.");
+                    return;
+                }
+
                 watchAdBtn.disabled = true;
                 watchAdBtn.textContent = "Загрузка рекламы...";
-                
+
+                const adController = window.Adsgram.init({ blockId: "56467" });
                 const result = await adController.show();
-                
+
                 score += 200;
                 scoreElement.textContent = score;
-                if (tg && tg.showAlert) {
-                    tg.showAlert("🎉 Вы получили 200 монет за просмотр рекламы!");
-                } else {
-                    alert("🎉 Вы получили 200 монет!");
-                }
+                alert("🎉 Вы получили 200 монет за просмотр рекламы!");
             } catch (err) {
                 console.log("Ad error:", err);
-                if (tg && tg.showAlert) {
-                    tg.showAlert("⚠️ Реклама закрыта досрочно или произошла ошибка.");
-                } else {
-                    alert("⚠️ Реклама недоступна или пропущена.");
-                }
+                alert("⚠️ Реклама закрыта или временно недоступна.");
             } finally {
                 watchAdBtn.disabled = false;
                 watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
             }
         });
 
-        // Сохранение результатов в бот
+        // Сохранение в бот
         saveButton.addEventListener("click", () => {
             if (score <= 0) {
-                if (tg && tg.showAlert) {
-                    tg.showAlert("Сначала заработайте монеты кликами или рекламой!");
-                } else {
-                    alert("Сначала заработайте монеты!");
-                }
+                alert("Сначала заработайте монеты!");
                 return;
             }
 
