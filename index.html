@@ -77,7 +77,7 @@
     <!-- Кнопка тапа -->
     <button class="coin-btn" id="tapButton">💎</button>
 
-    <!-- Кнопка рекламы (тест режим +200) -->
+    <!-- Кнопка рекламы (с реальным начислением на баланс) -->
     <button class="action-btn ad-btn" id="watchAdBtn">📺 Смотреть рекламу (+200)</button>
 
     <!-- Кнопка сохранения в бот -->
@@ -93,7 +93,7 @@
         const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
-        // Клик по алмазу
+        // Клик по алмазу (+1 монета)
         tapButton.addEventListener("click", () => {
             score += 1;
             scoreElement.textContent = score;
@@ -102,37 +102,35 @@
             }
         });
 
-        // Кнопка рекламы (тестовое начисление +200 для проверки)
+        // Кнопка рекламы: теперь реально добавляет 200 монет к балансу на экране
         watchAdBtn.addEventListener("click", () => {
             score += 200;
             scoreElement.textContent = score;
-            alert("⚠️ Тест режим: начислено +200 монет!");
+            alert("🎉 Успешно! Начислено +200 монет на ваш баланс.");
         });
 
         // Сохранение в бот
         saveButton.addEventListener("click", () => {
             if (score <= 0) {
-                alert("Сначала заработайте монеты!");
+                alert("Сначала заработайте монеты тапами или рекламой!");
                 return;
             }
 
             try {
                 const dataToSend = JSON.stringify({ coins: score });
                 
-                // Проверяем, поддерживает ли Telegram отправку данных
                 if (tg.sendData) {
                     tg.sendData(dataToSend);
-                    alert("✅ Монеты успешно отправлены в бот!");
                     score = 0;
                     scoreElement.textContent = score;
-                    // Закрываем мини-приложение, чтобы вернуться в чат и увидеть результат
-                    setTimeout(() => { tg.close(); }, 500);
+                    alert("✅ Монеты отправлены в бот!");
+                    setTimeout(() => { tg.close(); }, 400);
                 } else {
-                    alert("❌ Ошибка: мини-приложение открыто не через бота.");
+                    alert("❌ Ошибка отправки: откройте приложение через бота.");
                 }
             } catch (e) {
                 console.log("Send data error:", e);
-                alert("Ошибка отправки данных.");
+                alert("Ошибка передачи данных.");
             }
         });
     </script>
