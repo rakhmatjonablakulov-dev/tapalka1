@@ -6,6 +6,8 @@
     <title>Telegram Тапалка</title>
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Adsgram SDK -->
+    <script src="https://sad.adsgram.org/js/sad.js"></script>
     <style>
         body {
             background-color: #0f172a;
@@ -77,7 +79,7 @@
     <!-- Кнопка тапа -->
     <button class="coin-btn" id="tapButton">💎</button>
 
-    <!-- Кнопка рекламы (с реальным начислением на баланс) -->
+    <!-- Кнопка реальной рекламы Adsgram -->
     <button class="action-btn ad-btn" id="watchAdBtn">📺 Смотреть рекламу (+200)</button>
 
     <!-- Кнопка сохранения в бот -->
@@ -93,6 +95,12 @@
         const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
+        // Инициализация контроллера Adsgram для вашего блока 56467
+        let adController = null;
+        if (window.Adsgram) {
+            adController = window.Adsgram.init({ blockId: "56467" });
+        }
+
         // Клик по алмазу (+1 монета)
         tapButton.addEventListener("click", () => {
             score += 1;
@@ -102,35 +110,54 @@
             }
         });
 
-        // Кнопка рекламы: теперь реально добавляет 200 монет к балансу на экране
-        watchAdBtn.addEventListener("click", () => {
-            score += 200;
-            scoreElement.textContent = score;
-            alert("🎉 Успешно! Начислено +200 монет на ваш баланс.");
+        // Просмотр реальной рекламы Adsgram
+        watchAdBtn.addEventListener("click", async () => {
+            if (!adController) {
+                alert("Рекламный модуль загружается, попробуйте через секунду.");
+                return;
+            }
+
+            try {
+                watchAdBtn.disabled = true;
+                watchAdBtn.textContent = "Загрузка рекламы...";
+
+                // Запуск показа видеорекламы
+                const result = await adController.show();
+                
+                // Если пользователь досмотрел рекламу до конца
+                score += 200;
+                scoreElement.textContent = score;
+                alert("🎉 Вы успешно просмотрели рекламу и получили +200 монет!");
+            } catch (err) {
+                console.log("Ad error:", err);
+                alert("⚠️ Реклама закрыта досрочно или временно отсутствует.");
+            } finally {
+                watchAdBtn.disabled = false;
+                watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
+            }
         });
 
         // Сохранение в бот
         saveButton.addEventListener("click", () => {
             if (score <= 0) {
-                alert("Сначала заработайте монеты тапами или рекламой!");
+                alert("Сначала заработайте монеты!");
                 return;
             }
 
             try {
                 const dataToSend = JSON.stringify({ coins: score });
-                
                 if (tg.sendData) {
                     tg.sendData(dataToSend);
                     score = 0;
                     scoreElement.textContent = score;
-                    alert("✅ Монеты отправлены в бот!");
+                    alert("✅ Монеты успешно отправлены в бот!");
                     setTimeout(() => { tg.close(); }, 400);
                 } else {
-                    alert("❌ Ошибка отправки: откройте приложение через бота.");
+                    alert("❌ Откройте приложение через кнопку в боте.");
                 }
             } catch (e) {
                 console.log("Send data error:", e);
-                alert("Ошибка передачи данных.");
+                alert("Ошибка отправки данных.");
             }
         });
     </script>
