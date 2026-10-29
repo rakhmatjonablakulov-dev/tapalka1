@@ -131,10 +131,11 @@
         saveButton.addEventListener('click', () => {
             if (score > 0) {
                 const dataToSend = JSON.stringify({ coins: score });
-                if (tg && tg.sendData) {
-                    tg.sendData(dataToSend);
+                // Безопасная отправка данных в бот через Telegram WebApp API
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
+                    window.Telegram.WebApp.sendData(dataToSend);
                 } else {
-                    alert('Данные подготовлены: ' + dataToSend);
+                    alert('Ошибка: Telegram WebApp недоступен. Данные: ' + dataToSend);
                 }
             } else {
                 alert('Вы еще ничего не накликали!');
