@@ -86,8 +86,13 @@
     <button class="action-btn save-btn" id="saveButton">💾 Сохранить в бот</button>
 
     <script>
+        // Инициализация Telegram WebApp с защитой от ошибок
         let tg = window.Telegram.WebApp;
-        tg.expand();
+        try {
+            tg.expand();
+        } catch (e) {
+            console.log("Telegram expand error:", e);
+        }
 
         let score = 0;
         const scoreElement = document.getElementById("score");
@@ -95,17 +100,7 @@
         const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
-        // Инициализация контроллера Adsgram один раз при загрузке страницы
-        let adController = null;
-        if (typeof window.Adsgram !== "undefined") {
-            try {
-                adController = window.Adsgram.init({ blockId: "56467" });
-            } catch (e) {
-                console.log("Adsgram init error:", e);
-            }
-        }
-
-        // Клик по алмазу (+1 монета)
+        // Клик по алмазу (+1 монета) — работает всегда
         tapButton.addEventListener("click", () => {
             score += 1;
             scoreElement.textContent = score;
@@ -114,16 +109,61 @@
             }
         });
 
-        // Просмотр рекламы Adsgram
+        // Кнопка просмотра рекламы с защитой от блокировки сети
         watchAdBtn.addEventListener("click", async () => {
-            if (!adController) {
-                if (typeof window.Adsgram !== "undefined") {
-                    try {
-                        adController = window.Adsgram.init({ blockId: "56467" });
-                    } catch (e) {}
+            watchAdBtn.disabled = true;
+            watchAdBtn.textContent = "Загрузка...";
+
+            let adShown = false;
+
+            // Пытаемся запустить реальную рекламу Adsgram
+            if (typeof window.Adsgram !== "undefined") {
+                try {
+                    const adController = window.Adsgram.init({ blockId: "56467" });
+                    await adController.show();
+                    adShown = true;
+                } catch (err) {
+                    console.log("Adsgram show error or blocked:", err);
                 }
             }
 
-            if (!adController) {
-                alert("⚠️
-        
+            // Если реклама показалась или была заблокирована сетью, даем игроку монеты, чтобы игра не ломалась
+            score += 200;
+            scoreElement.textContent = score;
+            
+            if (adShown) {
+                alert("🎉 Реклама просмотрена! Получено +200 монет.");
+            } else {
+                alert("✨ Начислено +200 монет! (Рекламный модуль недоступен в вашей сети).");
+            }
+
+            watchAdBtn.disabled = false;
+            watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
+        });
+
+        // Сохранение в бот
+        saveButton.addEventListener("click", () => {
+            if (score <= 0) {
+                alert("Сначала заработайте монеты тапами или просмотром!");
+                return;
+            }
+
+            try {
+                const dataToSend = JSON.stringify({ coins: score });
+                if (tg && tg.sendData) {
+                    tg.sendData(dataToSend);
+                    score = 0;
+                    scoreElement.textContent = score;
+                    alert("✅ Монеты успешно отправлены в бот!");
+                    setTimeout(() => { tg.close(); }, 400);
+                } else {
+                    alert("❌ Ошибка: откройте приложение через кнопку в боте.");
+                }
+            } catch (e) {
+                console.log("Send data error:", e);
+                alert("Ошибка отправки данных в бот.");
+            }
+        });
+    </script>
+</body>
+</html>
