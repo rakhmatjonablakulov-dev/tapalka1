@@ -103,17 +103,16 @@
             }
         });
 
-        // Запуск реальной рекламы Adsgram
+        // Запуск рекламы Adsgram
         adButton.addEventListener('click', () => {
             if (!adController) {
                 alert('Рекламный модуль еще загружается. Попробуйте через пару секунд.');
                 return;
             }
 
-            // Вызываем показ рекламы
             adController.show()
                 .then((result) => {
-                    // СЮДА КОД ПОПАДАЕТ ТОЛЬКО ЕСЛИ РЕКЛАМА ДОСМОТРЕНА ДО КОНЦА
+                    // Начисление происходит строго после успешного просмотра
                     score += 100;
                     counterElement.textContent = score;
                     if (tg && tg.HapticFeedback) {
@@ -122,7 +121,6 @@
                     alert('Спасибо за просмотр! Начислено 100 монет.');
                 })
                 .catch((err) => {
-                    // Если игрок закрыл рекламу раньше времени или произошла ошибка
                     console.log("Ad error or skipped", err);
                     alert('Реклама не была досмотрена до конца. Монеты не начислены.');
                 });
@@ -131,14 +129,13 @@
         saveButton.addEventListener('click', () => {
             if (score > 0) {
                 const dataToSend = JSON.stringify({ coins: score });
-                // Безопасная отправка данных в бот через Telegram WebApp API
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
                     window.Telegram.WebApp.sendData(dataToSend);
                 } else {
-                    alert('Ошибка: Telegram WebApp недоступен. Данные: ' + dataToSend);
+                    alert('Ошибка: Telegram WebApp недоступен.');
                 }
             } else {
-                alert('Вы еще ничего не накликали!');
+                alert('У вас 0 монет для сохранения!');
             }
         });
     </script>
