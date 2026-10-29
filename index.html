@@ -95,7 +95,13 @@
         const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
-        // Тапалка
+        // Инициализация Adsgram Controller один раз при загрузке страницы
+        let adController = null;
+        if (window.Adsgram) {
+            adController = window.Adsgram.init({ blockId: "56467" });
+        }
+
+        // Клик по алмазу (тапалка)
         tapButton.addEventListener("click", () => {
             score += 1;
             scoreElement.textContent = score;
@@ -104,26 +110,26 @@
             }
         });
 
-        // Просмотр рекламы Adsgram
+        // Просмотр рекламы Adsgram (+200 монет)
         watchAdBtn.addEventListener("click", async () => {
+            if (!adController) {
+                alert("Рекламный модуль еще загружается. Повторите попытку через пару секунд.");
+                return;
+            }
+
             try {
                 watchAdBtn.disabled = true;
-                watchAdBtn.textContent = "Загрузка рекламы...";
+                watchAdBtn.textContent = "Загрузка...";
 
-                // Проверяем наличие Adsgram вwindow и инициализируем на лету
-                if (typeof window.Adsgram === "undefined") {
-                    throw new Error("Adsgram SDK не подключен");
-                }
-
-                const adController = window.Adsgram.init({ blockId: "56467" });
+                // Вызов показа рекламы по официальному стандарту Adsgram
                 const result = await adController.show();
-
+                
                 score += 200;
                 scoreElement.textContent = score;
                 alert("🎉 Вы получили 200 монет за просмотр рекламы!");
             } catch (err) {
-                console.log("Ad error:", err);
-                alert("⚠️ Реклама недоступна или была пропущена.");
+                console.log("Adsgram show error:", err);
+                alert("⚠️ Реклама временно отсутствует в вашем регионе или была закрыта.");
             } finally {
                 watchAdBtn.disabled = false;
                 watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
