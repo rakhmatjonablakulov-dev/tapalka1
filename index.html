@@ -95,7 +95,7 @@
         const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
-        // Клик по алмазу (тапалка)
+        // Тапалка
         tapButton.addEventListener("click", () => {
             score += 1;
             scoreElement.textContent = score;
@@ -104,16 +104,16 @@
             }
         });
 
-        // Кнопка рекламы с гарантированным вызовом
+        // Просмотр рекламы Adsgram
         watchAdBtn.addEventListener("click", async () => {
             try {
-                if (!window.Adsgram) {
-                    alert("Adsgram SDK не загрузился. Проверьте интернет.");
-                    return;
-                }
-
                 watchAdBtn.disabled = true;
                 watchAdBtn.textContent = "Загрузка рекламы...";
+
+                // Проверяем наличие Adsgram вwindow и инициализируем на лету
+                if (typeof window.Adsgram === "undefined") {
+                    throw new Error("Adsgram SDK не подключен");
+                }
 
                 const adController = window.Adsgram.init({ blockId: "56467" });
                 const result = await adController.show();
@@ -123,7 +123,7 @@
                 alert("🎉 Вы получили 200 монет за просмотр рекламы!");
             } catch (err) {
                 console.log("Ad error:", err);
-                alert("⚠️ Реклама закрыта или временно недоступна.");
+                alert("⚠️ Реклама недоступна или была пропущена.");
             } finally {
                 watchAdBtn.disabled = false;
                 watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
