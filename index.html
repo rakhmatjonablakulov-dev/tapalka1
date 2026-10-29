@@ -3,147 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тапалка</title>
+    <title>Telegram Тапалка с Adsgram</title>
+    <!-- Подключаем официальный скрипт Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Официальный SDK Adsgram -->
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <!-- Подключаем официальный SDK Adsgram -->
+    <script src="https://sad.adsgram.org/js/sad.js"></script>
     <style>
         body {
             background-color: #0f172a;
             color: #ffffff;
             font-family: Arial, sans-serif;
             text-align: center;
-            padding-top: 30px;
             margin: 0;
-            user-select: none;
-            -webkit-user-select: none;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
-        h1 { font-size: 24px; color: #ffffff; margin-bottom: 5px; }
-        #counter { font-size: 48px; font-weight: bold; margin: 15px 0; color: #fbbf24; }
-        .tap-btn {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border: none;
-            border-radius: 50%;
-            width: 170px;
-            height: 170px;
+        h1 { margin-bottom: 10px; font-size: 24px; }
+        .balance-container {
             font-size: 28px;
             font-weight: bold;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
-            margin-top: 10px;
+            color: #38bdf8;
+            margin-bottom: 30px;
         }
-        .tap-btn:active { transform: scale(0.92); }
+        .coin-btn {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border: none;
+            border-radius: 50%;
+            width: 160px;
+            height: 160px;
+            font-size: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            outline: none;
+            margin-bottom: 30px;
+        }
+        .coin-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+        }
         .ad-btn {
-            margin-top: 20px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            background-color: #22c55e;
             color: white;
             border: none;
             padding: 12px 24px;
-            font-size: 15px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .ad-btn:hover { background-color: #2563eb; }
-        .save-btn {
-            margin-top: 15px;
-            background-color: #10b981;
-            color: white;
-            border: none;
-            padding: 14px 28px;
             font-size: 16px;
             font-weight: bold;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+            margin-bottom: 15px;
+            width: 80%;
+            max-width: 300px;
         }
-        .save-btn:hover { background-color: #059669; }
+        .ad-btn:active { background-color: #16a34a; }
+        .save-btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            width: 80%;
+            max-width: 300px;
+        }
+        .save-btn:active { background-color: #2563eb; }
     </style>
 </head>
 <body>
 
-    <h1>🎮 Кликер Тапалка</h1>
-    <p>Кликайте по кнопке или смотрите рекламу за монеты!</p>
+    <h1>🪙 Крипто Тапалка</h1>
     
-    <div id="counter">0</div>
-    
-    <button class="tap-btn" id="tapButton">ТАП!</button>
-    <br>
-    <button class="ad-btn" id="adButton">📺 Смотреть рекламу (+100 монет)</button>
-    <br>
-    <button class="save-btn" id="saveButton">💾 Сохранить и зачислить в бот</button>
+    <div class="balance-container">
+        Баланс: <span id="score">0</span> монет
+    </div>
+
+    <!-- Большая кнопка тапа -->
+    <button class="coin-btn" id="tapButton">💎</button>
+
+    <!-- Кнопка просмотра рекламы Adsgram (Block ID: 56467) -->
+    <button class="ad-btn" id="watchAdBtn">📺 Смотреть рекламу (+200)</button>
+
+    <!-- Кнопка отправки результатов в бот -->
+    <button class="save-btn" id="saveButton">💾 Сохранить в бот</button>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        try {
-            tg.ready();
-            tg.expand();
-        } catch (e) {}
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
 
         let score = 0;
-        const counterElement = document.getElementById('counter');
-        const tapButton = document.getElementById('tapButton');
-        const saveButton = document.getElementById('saveButton');
-        const adButton = document.getElementById('adButton');
+        const scoreElement = document.getElementById("score");
+        const tapButton = document.getElementById("tapButton");
+        const watchAdBtn = document.getElementById("watchAdBtn");
+        const saveButton = document.getElementById("saveButton");
 
-        // Инициализация Adsgram с вашим Block ID (56467)
-        let adController = null;
-        if (window.Adsgram) {
-            adController = window.Adsgram.init({ blockId: "56467" });
-        }
+        // Инициализация Adsgram Controller с вашим ID блока
+        const adController = window.Adsgram.init({ blockId: "56467" });
 
-        // Обычные клики по кнопке «ТАП!»
-        tapButton.addEventListener('click', () => {
+        // Клик по монете
+        tapButton.addEventListener("click", () => {
             score += 1;
-            counterElement.textContent = score;
-            if (tg && tg.HapticFeedback) {
-                try { tg.HapticFeedback.impactOccurred('light'); } catch (e) {}
+            scoreElement.textContent = score;
+            
+            // Легкая вибрация телефона при клике
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred("light");
             }
         });
 
-        // Запуск рекламы Adsgram с гарантированным начислением для тестов
-        adButton.addEventListener('click', () => {
-            if (!adController) {
-                score += 100;
-                counterElement.textContent = score;
-                alert('Модуль грузится: начислено 100 монет!');
+        // Просмотр рекламы за награду (200 монет)
+        watchAdBtn.addEventListener("click", async () => {
+            try {
+                // Запуск показа рекламы Adsgram
+                const result = await adController.show();
+                // Если пользователь досмотрел рекламу до конца
+                score += 200;
+                scoreElement.textContent = score;
+                tg.showAlert("🎉 Вы получили 200 монет за просмотр рекламы!");
+            } catch (err) {
+                // Если реклама закрыта досрочно или произошла ошибка
+                console.log("Adsgram error:", err);
+                tg.showAlert("⚠️ Реклама не была досмотрена до конца или временно недоступна.");
+            }
+        });
+
+        // Отправка накопленных монет в ваш Telegram бот
+        saveButton.addEventListener("click", () => {
+            if (score <= 0) {
+                tg.showAlert("Сначала заработайте монеты кликами или рекламой!");
                 return;
             }
 
-            adController.show()
-                .then((result) => {
-                    score += 100;
-                    counterElement.textContent = score;
-                    if (tg && tg.HapticFeedback) {
-                        try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
-                    }
-                    alert('Реклама просмотрена! +100 монет. Всего: ' + score);
-                })
-                .catch((err) => {
-                    console.log("Ad error or skipped", err);
-                    // Принудительно начисляем монеты для проверки отправки в бот
-                    score += 100;
-                    counterElement.textContent = score;
-                    alert('Тест: зачислено 100 монет. Всего: ' + score);
-                });
-        });
-
-        // Сохранение и отправка данных в бот
-        saveButton.addEventListener('click', () => {
-            if (score > 0) {
-                const dataToSend = JSON.stringify({ coins: score });
-                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
-                    alert('Сохраняем ' + score + ' монет в бот!');
-                    window.Telegram.WebApp.sendData(dataToSend);
-                } else {
-                    alert('Ошибка: Telegram WebApp недоступен.');
-                }
-            } else {
-                alert('У вас 0 монет для сохранения!');
-            }
+            // Передаем данные боту через Telegram WebApp SDK
+            const dataToSend = JSON.stringify({ coins: score });
+            
+            tg.sendData(dataToSend);
+            score = 0; // Сбрасываем локальный счетчик после отправки
+            scoreElement.textContent = score;
         });
     </script>
 </body>
