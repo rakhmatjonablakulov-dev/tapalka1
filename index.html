@@ -1,24 +1,113 @@
-import json
-from aiogram import F, Router
-from aiogram.types import Message
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тапалка</title>
+    <!-- Подключаем Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Подключаем официальный SDK AdsGram -->
+    <script src="https://sad.adsgram.ai/js/adsgram.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1f1f1f;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        button {
+            background-color: #2481cc;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 85%;
+            max-width: 320px;
+        }
+        button:active {
+            opacity: 0.8;
+        }
+        #score {
+            font-size: 30px;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 
-router = Router()
+    <div id="score">Монеты: <span id="coins">0</span></div>
+    
+    <!-- Кнопка тапалки -->
+    <button id="tapBtn">ТАПАТЬ 🪙</button>
 
-@router.message(F.web_app_data)
-async def process_web_app_data(message: Message):
-    try:
-        # Парсим JSON-данные из мини-приложения
-        data = json.loads(message.web_app_data.data)
-        
-        if data.get("action") == "save_coins":
-            earned_coins = data.get("amount", 0)
-            user_id = message.from_user.id
-            
-            # TODO: Здесь сохраните earned_coins в вашу базу данных для user_id
-            # update_user_balance(user_id, earned_coins)
-            
-            await message.answer(f"✅ Успешно! В ваш баланс добавлено монет: {earned_coins}")
-            
-    except Exception as e:
-        await message.answer("Произошла ошибка при сохранении данных.")
-        
+    <!-- Кнопка просмотра рекламы за бонус -->
+    <button id="adBtn" style="background-color: #28a745;">Смотреть рекламу (+500 монет) 🎬</button>
+
+    <!-- Кнопка сохранения и отправки в бот -->
+    <button id="saveBtn" style="background-color: #ffc107; color: black; font-weight: bold;">Сохранить в бот 💾</button>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let coins = 0;
+        const coinsSpan = document.getElementById('coins');
+
+        // Клик по кнопке тапалки
+        document.getElementById('tapBtn').addEventListener('click', () => {
+            coins += 1;
+            coinsSpan.textContent = coins;
+        });
+
+        // Инициализация AdsGram SDK с вашим Block ID (56769)
+        let adController;
+        try {
+            adController = window.Adsgram.init({ blockId: "56769" });
+        } catch (e) {
+            console.error("Adsgram init error:", e);
+        }
+
+        // Обработка клика по кнопке просмотра рекламы
+        document.getElementById('adBtn').addEventListener('click', () => {
+            if (!adController) {
+                alert("Реклама еще не загрузилась. Проверьте интернет.");
+                return;
+            }
+
+            adController.show()
+                .then((result) => {
+                    coins += 500;
+                    coinsSpan.textContent = coins;
+                    alert("Реклама успешно просмотрена! Получено +500 монет 🎉");
+                })
+                .catch((result) => {
+                    console.log("Реклама не была досмотрена", result);
+                    alert("Реклама закрыта или произошла ошибка. Награда не начислена.");
+                });
+        });
+
+        // Кнопка отправки результатов обратно в Python-бот
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            if (coins <= 0) {
+                alert("У вас пока нет монет для сохранения!");
+                return;
+            }
+
+            tg.sendData(JSON.stringify({ action: "save_coins", amount: coins }));
+            tg.close();
+        });
+    </script>
+
+</body>
+</html>
