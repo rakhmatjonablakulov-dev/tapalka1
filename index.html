@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тапалка</title>
-    <!-- Подключаем Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Подключаем официальный SDK AdsGram -->
     <script src="https://sad.adsgram.ai/js/adsgram.min.js"></script>
     <style>
         body {
@@ -46,17 +44,11 @@
 
     <div id="score">Монеты: <span id="coins">0</span></div>
     
-    <!-- Кнопка тапалки -->
     <button id="tapBtn">ТАПАТЬ 🪙</button>
-
-    <!-- Кнопка просмотра рекламы за бонус -->
     <button id="adBtn" style="background-color: #28a745;">Смотреть рекламу (+500 монет) 🎬</button>
-
-    <!-- Кнопка сохранения и отправки в бот -->
     <button id="saveBtn" style="background-color: #ffc107; color: black; font-weight: bold;">Сохранить в бот 💾</button>
 
     <script>
-        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
@@ -64,27 +56,26 @@
         let coins = 0;
         const coinsSpan = document.getElementById('coins');
 
-        // Клик по кнопке тапалки
         document.getElementById('tapBtn').addEventListener('click', () => {
             coins += 1;
             coinsSpan.textContent = coins;
         });
 
-        // Инициализация AdsGram SDK с вашим Block ID (56769)
-        let adController;
+        // Инициализация AdsGram
+        let adController = null;
         try {
             adController = window.Adsgram.init({ blockId: "56769" });
         } catch (e) {
             console.error("Adsgram init error:", e);
         }
 
-        // Обработка клика по кнопке просмотра рекламы
         document.getElementById('adBtn').addEventListener('click', () => {
             if (!adController) {
-                alert("Реклама еще не загрузилась. Проверьте интернет.");
+                alert("Рекламный модуль не инициализирован.");
                 return;
             }
 
+            // Вызов рекламы с обработкой загрузки
             adController.show()
                 .then((result) => {
                     coins += 500;
@@ -92,22 +83,19 @@
                     alert("Реклама успешно просмотрена! Получено +500 монет 🎉");
                 })
                 .catch((result) => {
-                    console.log("Реклама не была досмотрена", result);
-                    alert("Реклама закрыта или произошла ошибка. Награда не начислена.");
+                    console.log("Ошибка показа рекламы:", result);
+                    alert("Не удалось загрузить рекламу. Проверьте интернет или попробуйте позже.");
                 });
         });
 
-        // Кнопка отправки результатов обратно в Python-бот
         document.getElementById('saveBtn').addEventListener('click', () => {
             if (coins <= 0) {
                 alert("У вас пока нет монет для сохранения!");
                 return;
             }
-
             tg.sendData(JSON.stringify({ action: "save_coins", amount: coins }));
             tg.close();
         });
     </script>
-
 </body>
 </html>
