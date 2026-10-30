@@ -1,14 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тапалка с рекламой</title>
+    <title>Крипто Тапалка</title>
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Adsgram SDK -->
-    <script src="https://sad.adsgram.org/js/sad.js"></script>
     <style>
         body {
             background-color: #0f172a;
@@ -60,7 +57,6 @@
             margin-bottom: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        .ad-btn { background-color: #22c55e; }
         .save-btn { background-color: #3b82f6; }
     </style>
 </head>
@@ -75,9 +71,6 @@
     <!-- Кнопка тапа -->
     <button class="coin-btn" id="tapButton">💎</button>
 
-    <!-- Кнопка рекламы -->
-    <button class="action-btn ad-btn" id="watchAdBtn">📺 Смотреть рекламу (+200)</button>
-
     <!-- Кнопка сохранения в бот -->
     <button class="action-btn save-btn" id="saveButton">💾 Сохранить в бот</button>
 
@@ -88,7 +81,6 @@
         let score = 0;
         const scoreElement = document.getElementById("score");
         const tapButton = document.getElementById("tapButton");
-        const watchAdBtn = document.getElementById("watchAdBtn");
         const saveButton = document.getElementById("saveButton");
 
         // Тап по алмазу
@@ -98,37 +90,6 @@
             if (tg && tg.HapticFeedback) {
                 try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {}
             }
-        });
-
-        // Просмотр рекламы с автоматическим резервным начислением
-        watchAdBtn.addEventListener("click", async () => {
-            watchAdBtn.disabled = true;
-            watchAdBtn.textContent = "Проверка рекламы...";
-
-            let adShown = false;
-
-            if (typeof window.Adsgram !== "undefined") {
-                try {
-                    const adController = window.Adsgram.init({ blockId: "56761" });
-                    await adController.show();
-                    adShown = true;
-                } catch (err) {
-                    console.log("Ad network error or blocked:", err);
-                }
-            }
-
-            // Начисляем монеты в любом случае, чтобы игра не зависала у пользователей без VPN
-            score += 200;
-            scoreElement.textContent = score;
-
-            if (adShown) {
-                alert("🎉 Реклама успешно просмотрена! Получено +200 монет.");
-            } else {
-                alert("✨ Начислено +200 монет! (Рекламный блок в вашей сети работал в резервном режиме).");
-            }
-
-            watchAdBtn.disabled = false;
-            watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
         });
 
         // Отправка данных в бот
