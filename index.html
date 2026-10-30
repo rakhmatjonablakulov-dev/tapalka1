@@ -1,11 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тапалка</title>
+    <title>Тапалка с рекламой</title>
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Adsgram SDK -->
+    <script src="https://sad.adsgram.org/js/sad.js"></script>
     <style>
         body {
             background-color: #0f172a;
@@ -72,6 +75,84 @@
     <!-- Кнопка тапа -->
     <button class="coin-btn" id="tapButton">💎</button>
 
-    <!-- Кнопка перехода в канал bo_nus7 -->
-    <button class="action-btn ad-
-        
+    <!-- Кнопка рекламы -->
+    <button class="action-btn ad-btn" id="watchAdBtn">📺 Смотреть рекламу (+200)</button>
+
+    <!-- Кнопка сохранения в бот -->
+    <button class="action-btn save-btn" id="saveButton">💾 Сохранить в бот</button>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        try { tg.expand(); } catch (e) {}
+
+        let score = 0;
+        const scoreElement = document.getElementById("score");
+        const tapButton = document.getElementById("tapButton");
+        const watchAdBtn = document.getElementById("watchAdBtn");
+        const saveButton = document.getElementById("saveButton");
+
+        // Тап по алмазу
+        tapButton.addEventListener("click", () => {
+            score += 1;
+            scoreElement.textContent = score;
+            if (tg && tg.HapticFeedback) {
+                try { tg.HapticFeedback.impactOccurred("light"); } catch (e) {}
+            }
+        });
+
+        // Просмотр рекламы с автоматическим резервным начислением
+        watchAdBtn.addEventListener("click", async () => {
+            watchAdBtn.disabled = true;
+            watchAdBtn.textContent = "Проверка рекламы...";
+
+            let adShown = false;
+
+            if (typeof window.Adsgram !== "undefined") {
+                try {
+                    const adController = window.Adsgram.init({ blockId: "56761" });
+                    await adController.show();
+                    adShown = true;
+                } catch (err) {
+                    console.log("Ad network error or blocked:", err);
+                }
+            }
+
+            // Начисляем монеты в любом случае, чтобы игра не зависала у пользователей без VPN
+            score += 200;
+            scoreElement.textContent = score;
+
+            if (adShown) {
+                alert("🎉 Реклама успешно просмотрена! Получено +200 монет.");
+            } else {
+                alert("✨ Начислено +200 монет! (Рекламный блок в вашей сети работал в резервном режиме).");
+            }
+
+            watchAdBtn.disabled = false;
+            watchAdBtn.textContent = "📺 Смотреть рекламу (+200)";
+        });
+
+        // Отправка данных в бот
+        saveButton.addEventListener("click", () => {
+            if (score <= 0) {
+                alert("Сначала заработайте монеты!");
+                return;
+            }
+
+            try {
+                const dataToSend = JSON.stringify({ coins: score });
+                if (tg && tg.sendData) {
+                    tg.sendData(dataToSend);
+                    score = 0;
+                    scoreElement.textContent = score;
+                    alert("✅ Монеты сохранены в бот!");
+                    setTimeout(() => { tg.close(); }, 400);
+                } else {
+                    alert("❌ Откройте приложение через кнопку в боте.");
+                }
+            } catch (e) {
+                alert("Ошибка отправки данных.");
+            }
+        });
+    </script>
+</body>
+</html>
