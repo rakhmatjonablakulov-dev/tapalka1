@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -5,7 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tapalka</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -16,36 +22,68 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 20px;
 }
-h1 { color: #35aaff; }
-#score { font-size: 28px; margin: 25px; }
-button {
+
+h1 {
+  color: #35aaff;
+}
+
+#score {
+  font-size: 28px;
+  margin: 25px;
+}
+
+#tapBtn {
   width: 85%;
   max-width: 320px;
-  padding: 18px;
-  margin: 10px;
+  padding: 22px;
+  margin: 20px;
   border: 0;
   border-radius: 14px;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: bold;
   background: #2481cc;
   color: white;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-button:disabled { opacity: .5; }
-#status { color: #aaa; margin: 15px; text-align: center; }
+
+#tapBtn:active {
+  transform: scale(0.96);
+  background: #1765a5;
+}
+
+#status {
+  color: #aaa;
+  margin: 15px;
+  text-align: center;
+  min-height: 24px;
+}
 </style>
 </head>
+
 <body>
+
 <h1>🎮 TAPALKA</h1>
-<div id="score">Монеты: <span id="coins">0</span></div>
-<div>Тапов: <span id="taps">0</span></div>
-<button id="tapBtn">ТАПАТЬ 🪙</button>
+
+<div id="score">
+  Монеты: <span id="coins">0</span>
+</div>
+
+<div>
+  Тапов: <span id="taps">0</span>
+</div>
+
+<button id="tapBtn" disabled>ТАПАТЬ 🪙</button>
+
 <div id="status">Подключение...</div>
 
 <script>
 const tg = window.Telegram.WebApp;
-
-alert("Telegram initData: " + (tg.initData ? "ЕСТЬ" : "ПУСТО"));
 
 tg.ready();
 tg.expand();
@@ -57,7 +95,17 @@ const tapsEl = document.getElementById("taps");
 const statusEl = document.getElementById("status");
 const tapBtn = document.getElementById("tapBtn");
 
+let confirmedBalance = 0;
+let confirmedTaps = 0;
+
+let pendingTaps = 0;
 let busy = false;
+let ready = false;
+
+function render() {
+  coinsEl.textContent = confirmedBalance + pendingTaps;
+  tapsEl.textContent = confirmedTaps + pendingTaps;
+}
 
 async function request(path, method = "GET", body = null) {
   const response = await fetch(API + path, {
@@ -72,42 +120,105 @@ async function request(path, method = "GET", body = null) {
   if (!response.ok) {
     throw new Error("Ошибка сервера: " + response.status);
   }
+
   return await response.json();
 }
 
 async function loadBalance() {
   try {
+    if (!tg.initData) {
+      throw new Error("Открой игру через Telegram");
+    }
+
     const data = await request("/me");
-    coinsEl.textContent = data.balance;
-    tapsEl.textContent = data.taps;
-    statusEl.textContent = "Игра подключена ✅";
+
+    confirmedBalance = data.balance;
+    confirmedTaps = data.taps;
+
+    ready = true;
     tapBtn.disabled = false;
+
+    render();
+
+    statusEl.textContent = "Игра подключена ✅";
+
+    scheduleSync(200);
+
   } catch (e) {
     statusEl.textContent = "Открой игру через Telegram-бота";
     tapBtn.disabled = true;
   }
 }
 
-tapBtn.addEventListener("click", async () => {
-  if (busy) return;
+function scheduleSync(delay = 200) {
+  if (!ready || busy || pendingTaps <= 0) return;
+
+  setTimeout(flushTaps, delay);
+}
+
+async function flushTaps() {
+  if (!ready || busy || pendingTaps <= 0) return;
+
   busy = true;
-  tapBtn.disabled = true;
+
+  const batch = Math.min(pendingTaps, 10);
 
   try {
-    const data = await request("/tap", "POST", {count: 1});
-    coinsEl.textContent = data.balance;
-    tapsEl.textContent = data.taps;
-    statusEl.textContent = "Монета сохранена ✅";
+    const data = await request("/tap", "POST", {
+      count: batch
+    });
+
+    pendingTaps -= batch;
+
+    confirmedBalance = data.balance;
+    confirmedTaps = data.taps;
+
+    render();
+
+    if (pendingTaps > 0) {
+      statusEl.textContent = "Сохраняем нажатия...";
+      scheduleSync(200);
+    } else {
+      statusEl.textContent = "Монеты сохранены ✅";
+    }
+
   } catch (e) {
-    statusEl.textContent = "Не удалось сохранить тап. Попробуй ещё раз.";
-  } finally {
+    statusEl.textContent = "Сохраняем нажатия, подожди...";
+
+    // При ограничении сервера ждём одну секунду.
+    const delay = e.message.includes("429") ? 1100 : 2000;
+
     busy = false;
-    tapBtn.disabled = false;
+    scheduleSync(delay);
+    return;
+
+  } finally {
+    if (busy) {
+      busy = false;
+    }
   }
+
+  if (pendingTaps > 0) {
+    scheduleSync(200);
+  }
+}
+
+tapBtn.addEventListener("click", () => {
+  if (!ready) return;
+
+  // Мгновенно показываем монету на экране.
+  pendingTaps++;
+  render();
+
+  statusEl.textContent = "Сохраняем нажатия...";
+
+  scheduleSync(200);
 });
 
 tapBtn.disabled = true;
+
 loadBalance();
 </script>
+
 </body>
 </html>
