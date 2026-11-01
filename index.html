@@ -4,7 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tapalka</title>
+<meta name="theme-color" content="#090b1c">
+<title>TAPALKA</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
@@ -15,72 +16,246 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: #1f1f1f;
+  padding: 25px 18px;
   color: white;
   font-family: Arial, sans-serif;
+  background:
+    radial-gradient(circle at 50% 35%, #24205c 0%, transparent 42%),
+    linear-gradient(160deg, #090b1c, #11152e 60%, #080a18);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   user-select: none;
   -webkit-user-select: none;
-  padding: 20px;
+  overflow-x: hidden;
 }
 
-h1 {
-  color: #35aaff;
+.header {
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
 }
 
-#score {
-  font-size: 28px;
-  margin: 25px;
+.logo {
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow: 0 0 15px #8b5cf6;
+}
+
+.logo span {
+  color: #43d9ff;
+}
+
+.level {
+  padding: 9px 14px;
+  border: 1px solid #554c9b;
+  border-radius: 20px;
+  background: #211d45;
+  color: #c9bdff;
+  font-size: 12px;
+}
+
+.welcome {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.welcome h2 {
+  margin: 0 0 8px;
+  font-size: 25px;
+}
+
+.welcome p {
+  margin: 0;
+  color: #969bbd;
+  font-size: 14px;
+}
+
+.stats {
+  width: 100%;
+  max-width: 430px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 35px;
+}
+
+.stat-card {
+  padding: 18px 12px;
+  text-align: center;
+  border: 1px solid #343765;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #202449, #141831);
+  box-shadow: 0 8px 25px #0005;
+}
+
+.stat-icon {
+  font-size: 25px;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #a6acd0;
+  margin-bottom: 7px;
+}
+
+.stat-value {
+  font-size: 25px;
+  font-weight: 900;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+
+#coins {
+  color: #ffd65a;
+  text-shadow: 0 0 15px #ffb70066;
+}
+
+#taps {
+  color: #51dcff;
+}
+
+.game-area {
+  width: 100%;
+  max-width: 430px;
+  text-align: center;
+}
+
+.coin-circle {
+  width: 225px;
+  height: 225px;
+  margin: 0 auto 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle, #40358d, #211c50 65%, #12152f);
+  border: 5px solid #7770ff;
+  box-shadow:
+    0 0 20px #7265ff,
+    0 0 55px #6254ff66,
+    inset 0 0 30px #9b8cff55;
+  animation: glow 2.5s infinite alternate;
+}
+
+.coin {
+  font-size: 115px;
+  filter: drop-shadow(0 0 15px #ffcb45);
+  transition: transform 0.08s;
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 20px #7265ff, 0 0 40px #6254ff55; }
+  to { box-shadow: 0 0 35px #7265ff, 0 0 75px #6254ff99; }
 }
 
 #tapBtn {
-  width: 85%;
+  width: 100%;
   max-width: 320px;
-  padding: 22px;
-  margin: 20px;
+  padding: 21px;
   border: 0;
-  border-radius: 14px;
-  font-size: 22px;
-  font-weight: bold;
-  background: #2481cc;
+  border-radius: 18px;
+  background: linear-gradient(100deg, #7255ff, #3bbcff);
   color: white;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  box-shadow: 0 7px 0 #302a88, 0 12px 30px #5145d966;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 
 #tapBtn:active {
-  transform: scale(0.96);
-  background: #1765a5;
+  transform: translateY(5px) scale(0.97);
+  box-shadow: 0 2px 0 #302a88, 0 5px 15px #5145d966;
+}
+
+#tapBtn:disabled {
+  opacity: 0.5;
+}
+
+.hint {
+  color: #9ca3c7;
+  font-size: 13px;
+  margin-top: 20px;
 }
 
 #status {
-  color: #aaa;
-  margin: 15px;
+  margin-top: 25px;
+  min-height: 22px;
+  color: #69e6b0;
+  font-size: 13px;
   text-align: center;
-  min-height: 24px;
+}
+
+.footer {
+  margin-top: 35px;
+  color: #646b91;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.float-coin {
+  position: fixed;
+  pointer-events: none;
+  font-size: 25px;
+  animation: fly 0.8s ease-out forwards;
+  z-index: 10;
+}
+
+@keyframes fly {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎮 TAPALKA</h1>
-
-<div id="score">
-  Монеты: <span id="coins">0</span>
+<div class="header">
+  <div class="logo">TAP<span>ALKA</span> ⚡</div>
+  <div class="level">🎮 CLICK & EARN</div>
 </div>
 
-<div>
-  Тапов: <span id="taps">0</span>
+<div class="welcome">
+  <h2>Добро пожаловать!</h2>
+  <p>Тапай и собирай свои монеты 🪙</p>
 </div>
 
-<button id="tapBtn" disabled>ТАПАТЬ 🪙</button>
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-icon">🪙</div>
+    <div class="stat-label">ТВОИ МОНЕТЫ</div>
+    <div class="stat-value" id="coins">0</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">⚡</div>
+    <div class="stat-label">ВСЕГО ТАПОВ</div>
+    <div class="stat-value" id="taps">0</div>
+  </div>
+</div>
+
+<div class="game-area">
+  <div class="coin-circle" id="coinCircle">
+    <div class="coin" id="coin">🪙</div>
+  </div>
+
+  <button id="tapBtn" disabled>ТАПАТЬ ⚡</button>
+  <div class="hint">Нажимай на кнопку и зарабатывай!</div>
+</div>
 
 <div id="status">Подключение...</div>
+
+<div class="footer">TAPALKA • PLAY • TAP • EARN</div>
 
 <script>
 const tg = window.Telegram.WebApp;
@@ -94,13 +269,14 @@ const coinsEl = document.getElementById("coins");
 const tapsEl = document.getElementById("taps");
 const statusEl = document.getElementById("status");
 const tapBtn = document.getElementById("tapBtn");
+const coin = document.getElementById("coin");
 
 let confirmedBalance = 0;
 let confirmedTaps = 0;
-
 let pendingTaps = 0;
 let busy = false;
 let ready = false;
+let syncTimer = null;
 
 function render() {
   coinsEl.textContent = confirmedBalance + pendingTaps;
@@ -139,10 +315,7 @@ async function loadBalance() {
     tapBtn.disabled = false;
 
     render();
-
     statusEl.textContent = "Игра подключена ✅";
-
-    scheduleSync(200);
 
   } catch (e) {
     statusEl.textContent = "Открой игру через Telegram-бота";
@@ -151,16 +324,18 @@ async function loadBalance() {
 }
 
 function scheduleSync(delay = 200) {
-  if (!ready || busy || pendingTaps <= 0) return;
+  if (!ready || busy || pendingTaps <= 0 || syncTimer !== null) return;
 
-  setTimeout(flushTaps, delay);
+  syncTimer = setTimeout(() => {
+    syncTimer = null;
+    flushTaps();
+  }, delay);
 }
 
 async function flushTaps() {
   if (!ready || busy || pendingTaps <= 0) return;
 
   busy = true;
-
   const batch = Math.min(pendingTaps, 10);
 
   try {
@@ -169,7 +344,6 @@ async function flushTaps() {
     });
 
     pendingTaps -= batch;
-
     confirmedBalance = data.balance;
     confirmedTaps = data.taps;
 
@@ -177,25 +351,19 @@ async function flushTaps() {
 
     if (pendingTaps > 0) {
       statusEl.textContent = "Сохраняем нажатия...";
-      scheduleSync(200);
     } else {
       statusEl.textContent = "Монеты сохранены ✅";
     }
 
   } catch (e) {
-    statusEl.textContent = "Сохраняем нажатия, подожди...";
-
-    // При ограничении сервера ждём одну секунду.
-    const delay = e.message.includes("429") ? 1100 : 2000;
+    statusEl.textContent = "Повторное сохранение...";
 
     busy = false;
-    scheduleSync(delay);
+    scheduleSync(e.message.includes("429") ? 1100 : 2000);
     return;
 
   } finally {
-    if (busy) {
-      busy = false;
-    }
+    busy = false;
   }
 
   if (pendingTaps > 0) {
@@ -203,15 +371,33 @@ async function flushTaps() {
   }
 }
 
+function showCoinAnimation() {
+  coin.style.transform = "scale(1.2) rotate(-10deg)";
+
+  setTimeout(() => {
+    coin.style.transform = "scale(1) rotate(0)";
+  }, 100);
+
+  const floating = document.createElement("div");
+  floating.className = "float-coin";
+  floating.textContent = "+1 🪙";
+
+  const rect = tapBtn.getBoundingClientRect();
+  floating.style.left = (rect.left + rect.width / 2) + "px";
+  floating.style.top = (rect.top - 10) + "px";
+
+  document.body.appendChild(floating);
+  setTimeout(() => floating.remove(), 850);
+}
+
 tapBtn.addEventListener("click", () => {
   if (!ready) return;
 
-  // Мгновенно показываем монету на экране.
   pendingTaps++;
   render();
+  showCoinAnimation();
 
   statusEl.textContent = "Сохраняем нажатия...";
-
   scheduleSync(200);
 });
 
