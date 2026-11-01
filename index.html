@@ -321,11 +321,11 @@ body {
 
   <div class="progress-text">
     <span id="progressCurrent">0 монет</span>
-    <span id="progressTarget">1 000</span>
+    <span id="progressTarget">10 000</span>
   </div>
 
   <div class="withdraw-status" id="withdrawStatus">
-    🔒 Вывод закрыт. Накопи 50 000 монет для уровня Легенда.
+    🔒 Вывод закрыт. Накопи 500 000 монет для уровня Легенда.
   </div>
 </div>
 
@@ -363,11 +363,11 @@ let ready = false;
 let syncTimer = null;
 
 const levels = [
-  { min: 0, name: "🥉 Новичок", next: 1000 },
-  { min: 1000, name: "🥈 Любитель", next: 5000 },
-  { min: 5000, name: "🥇 Профи", next: 10000 },
-  { min: 10000, name: "💎 Мастер", next: 50000 },
-  { min: 50000, name: "👑 Легенда", next: null }
+  { min: 0, name: "🥉 Новичок", next: 10000 },
+  { min: 10001, name: "🥈 Любитель", next: 50000 },
+  { min: 50001, name: "🥇 Профи", next: 100000 },
+  { min: 100001, name: "💎 Мастер", next: 500000 },
+  { min: 500001, name: "👑 Легенда", next: null }
 ];
 
 function updateLevel(balance) {
