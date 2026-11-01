@@ -43,11 +43,15 @@ button:disabled { opacity: .5; }
 <div id="status">Подключение...</div>
 
 <script>
+const tg = window.Telegram.WebApp;
+
 alert("Telegram initData: " + (tg.initData ? "ЕСТЬ" : "ПУСТО"));
+
 tg.ready();
 tg.expand();
 
 const API = "https://tapalka-umik.onrender.com";
+
 const coinsEl = document.getElementById("coins");
 const tapsEl = document.getElementById("taps");
 const statusEl = document.getElementById("status");
