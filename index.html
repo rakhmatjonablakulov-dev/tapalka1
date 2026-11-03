@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -244,7 +245,22 @@ body {
   box-shadow: 0 2px 0 #302a88, 0 5px 15px #5145d966;
 }
 
-#tapBtn:disabled { opacity: 0.5; }
+#tapBtn:disabled, #adBtn:disabled { opacity: 0.5; }
+
+#adBtn {
+  width: 100%;
+  max-width: 320px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #d5b34b;
+  border-radius: 16px;
+  background: linear-gradient(100deg, #70521a, #b58a2c);
+  color: white;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
 
 .hint {
   color: #9ca3c7;
@@ -338,6 +354,7 @@ body {
 
   <button id="tapBtn" disabled>ТАПАТЬ ⚡</button>
   <div class="hint">Нажимай на кнопку и зарабатывай!</div>
+  <button id="adBtn" disabled>СМОТРЕТЬ РЕКЛАМУ +200 🪙</button>
 </div>
 
 <div id="status">Подключение...</div>
@@ -355,6 +372,7 @@ const coinsEl = document.getElementById("coins");
 const tapsEl = document.getElementById("taps");
 const statusEl = document.getElementById("status");
 const tapBtn = document.getElementById("tapBtn");
+const adBtn = document.getElementById("adBtn");
 const coin = document.getElementById("coin");
 
 let confirmedBalance = 0;
@@ -448,6 +466,7 @@ async function loadBalance() {
 
     ready = true;
     tapBtn.disabled = false;
+    adBtn.disabled = false;
 
     render();
     statusEl.textContent = "Игра подключена ✅";
@@ -455,6 +474,7 @@ async function loadBalance() {
   } catch (e) {
     statusEl.textContent = "Открой игру через Telegram-бота";
     tapBtn.disabled = true;
+    adBtn.disabled = true;
   }
 }
 
@@ -531,7 +551,56 @@ tapBtn.addEventListener("click", () => {
   scheduleSync(200);
 });
 
+adBtn.addEventListener("click", async () => {
+  if (!ready || adBtn.disabled) return;
+
+  adBtn.disabled = true;
+  adBtn.textContent = "ЗАГРУЗКА РЕКЛАМЫ...";
+  statusEl.textContent = "Подготавливаем рекламу...";
+
+  try {
+    const data = await request("/ad/start", "POST");
+    if (!data.ymid) throw new Error("Сервер не вернул ymid");
+
+    if (typeof window.show_12175809 !== "function") {
+      throw new Error("Реклама ещё загружается. Попробуй немного позже.");
+    }
+
+    window.show_12175809({ ymid: data.ymid });
+    statusEl.textContent = "Реклама запущена. Награда начислится после подтверждения Monetag.";
+
+    // Проверяем баланс с сервера: монеты начисляет только postback Monetag.
+    let checks = 0;
+    const checkReward = async () => {
+      checks++;
+      try {
+        const current = await request("/me");
+        confirmedBalance = current.balance;
+        confirmedTaps = current.taps;
+        render();
+      } catch (e) {
+        // Повторим проверку при следующем цикле.
+      }
+
+      if (checks < 12) {
+        setTimeout(checkReward, 5000);
+      } else {
+        adBtn.disabled = false;
+        adBtn.textContent = "СМОТРЕТЬ РЕКЛАМУ +200 🪙";
+        statusEl.textContent = "Проверка завершена. Если Monetag подтвердил событие, монеты уже в балансе.";
+      }
+    };
+    setTimeout(checkReward, 5000);
+
+  } catch (e) {
+    statusEl.textContent = e.message || "Не удалось запустить рекламу.";
+    adBtn.disabled = false;
+    adBtn.textContent = "СМОТРЕТЬ РЕКЛАМУ +200 🪙";
+  }
+});
+
 tapBtn.disabled = true;
+adBtn.disabled = true;
 loadBalance();
 </script>
 
